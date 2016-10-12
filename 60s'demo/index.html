@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <title>60s'button</title>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+</head>
+<body>
+
+<input type="button" id="btn" value="获取验证码" />
+
+
+<script type="text/javascript">
+    var wait;
+
+    function getWait() {
+        if(getCookie("remaintime")==null){
+            wait=60;
+        }
+        else {
+            wait=getCookie("remaintime");
+        }
+    }
+    /*refresh page's invalidation*/
+    function buttonState() {
+        if(wait==60){
+            document.getElementById("btn").onclick=function(){time(this);}
+        }
+        else {
+            time(document.getElementById("btn"));
+        }
+    }
+
+    function time(o) {
+        if (wait == 0) {
+            o.removeAttribute("disabled");
+            o.value="免费获取验证码";
+            wait = 60;
+            setCookie("remaintime",wait,wait+1);
+        } else {
+            o.setAttribute("disabled", true);
+            o.value="重新发送(" + wait + ")";
+            wait--;
+            setCookie("remaintime",wait,wait+1);
+            setTimeout(function() {
+                        time(o)
+                    },
+                    1000)
+        }
+    }
+
+    getWait();
+    buttonState();
+
+/*start:cookie*/
+    function setCookie(name,value,time) {
+    var expires="";
+        if(time) {
+            var date = new Date();
+            date.setTime(date.getTime() + time*1000);
+            expires = ";expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + value + expires + ";path=/";
+    }
+
+    function getCookie(name) {
+        var searchName = name+"=";
+        var cookies=document.cookie.split(";");
+        for (var i=0;i<cookies.length;i++){
+            var c=cookies[i];
+            while (c.charAt(0)==' ')
+            c=c.substring(1,c.length);
+            if(c.indexOf(searchName)==0)
+                    return c.substring(searchName.length,c.length);
+        }
+        return null;
+    }
+
+    function cleanCookie(name) {
+        setCookie(name,"",-1);
+    }
+/*end:cookie*/
+
+</script>
+</body>
+</html>
