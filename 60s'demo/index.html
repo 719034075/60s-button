@@ -1,86 +1,56 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>60s'button</title>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
 </head>
 <body>
 
-<input type="button" id="btn" value="获取验证码" />
+<input type="button" id="btn" value="获取验证码"/>
 
-
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
 <script type="text/javascript">
-    var wait;
+    let id;
 
-    function getWait() {
-        if(getCookie("remaintime")==null){
-            wait=60;
-        }
-        else {
-            wait=getCookie("remaintime");
-        }
-    }
-    /*refresh page's invalidation*/
-    function buttonState() {
-        if(wait==60){
-            document.getElementById("btn").onclick=function(){time(this);}
-        }
-        else {
-            time(document.getElementById("btn"));
-        }
-    }
-
-    function time(o) {
-        if (wait == 0) {
-            o.removeAttribute("disabled");
-            o.value="免费获取验证码";
-            wait = 60;
-            setCookie("remaintime",wait,wait+1);
+    function remainTime() {
+        if (localStorage.getItem('start-time')) {
+            return parseInt(60 - ((new Date().getTime() - localStorage.getItem('start-time')) / 1000));
         } else {
-            o.setAttribute("disabled", true);
-            o.value="重新发送(" + wait + ")";
-            wait--;
-            setCookie("remaintime",wait,wait+1);
-            setTimeout(function() {
-                        time(o)
-                    },
-                    1000)
+            localStorage.setItem('start-time', new Date().getTime());
+            return 60;
         }
     }
 
-    getWait();
-    buttonState();
-
-/*start:cookie*/
-    function setCookie(name,value,time) {
-    var expires="";
-        if(time) {
-            var date = new Date();
-            date.setTime(date.getTime() + time*1000);
-            expires = ";expires=" + date.toUTCString();
+    function changeButtonState() {
+        const $btn = $("#btn");
+        let remain_time = remainTime();
+        if (remain_time <= 0) {
+            $btn.val("获取验证码");
+            $btn.removeAttr("disabled");
+            localStorage.removeItem('start-time');
+            clearInterval(id);
+        } else {
+            $btn.val(`${remain_time}秒`);
+            $btn.attr("disabled", true);
         }
-        document.cookie = name + "=" + value + expires + ";path=/";
     }
 
-    function getCookie(name) {
-        var searchName = name+"=";
-        var cookies=document.cookie.split(";");
-        for (var i=0;i<cookies.length;i++){
-            var c=cookies[i];
-            while (c.charAt(0)==' ')
-            c=c.substring(1,c.length);
-            if(c.indexOf(searchName)==0)
-                    return c.substring(searchName.length,c.length);
+    function timeEvent() {
+        id = setInterval("changeButtonState()", 1000);
+    }
+
+
+    function entry() {
+        const $btn = $("#btn");
+        if (localStorage.getItem('start-time')) {
+            timeEvent();
         }
-        return null;
+        $btn.on('click', function () {
+            timeEvent();
+        });
     }
 
-    function cleanCookie(name) {
-        setCookie(name,"",-1);
-    }
-/*end:cookie*/
-
+    entry();
 </script>
 </body>
 </html>
